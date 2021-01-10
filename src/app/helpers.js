@@ -3,7 +3,7 @@
 
 import axios from 'axios';
 
-import { Credentials, tokenURI } from './__creds';
+import { Credentials, tokenURI } from './endpoint';
 
 console.log(Credentials());
 
@@ -28,4 +28,15 @@ const clientLogin = async () => {
   return data;
 };
 
-export { clientLogin };
+const normalizePort = (val) => {
+  const port = parseInt(val, 10);
+  if (Number.isNaN) {
+    return val;
+  }
+  if (port > 0) {
+    return port;
+  }
+  return false;
+};
+
+export { clientLogin, normalizePort };

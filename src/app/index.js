@@ -2,7 +2,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 
-import { getToken } from './__controller';
+import { getToken } from './controllers/posts';
 
 const app = express();
 
@@ -12,6 +12,6 @@ app.get('/', (req, res) => {
   res.send('Hi All!');
 });
 
-app.get('/login', getToken());
+app.get('/login', (req, res) => getToken(req, res));
 
 export default app;

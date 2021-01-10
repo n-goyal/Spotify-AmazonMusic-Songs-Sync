@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable no-console */
-import { clientLogin } from './__requests_helper';
+import { clientLogin } from '../helpers';
 
 const getToken = async (req, res) => {
   const token = await clientLogin()
