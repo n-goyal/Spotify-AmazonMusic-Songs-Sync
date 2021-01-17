@@ -1,11 +1,18 @@
+/* eslint-disable consistent-return */
 /* eslint-disable no-console */
 /* eslint-disable import/prefer-default-export */
+// eslint-disable-next-line no-undef
 
 import axios from 'axios';
+import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+import circularJSON from 'circular-json';
+import { parse, stringify } from 'envfile';
 
-import { Credentials, tokenURI } from './endpoint';
+import { Credentials, playlistsURI, tokenURI } from './endpoint';
 
-console.log(Credentials());
+dotenv.config();
 
 const authString = Buffer.from(
   `${Credentials().clientId}:${Credentials().clientSecret}`,
@@ -13,18 +20,72 @@ const authString = Buffer.from(
 
 console.log(authString);
 
+const apiReqJson = ({
+  method = 'GET',
+  data = {},
+  accessToken,
+  contentType = 'application/json',
+  accept = '',
+  authType = 'Bearer',
+}) => {
+  const headers = {
+    'Content-Type': `${contentType}`,
+    Authorization: `${authType} ${accessToken}`,
+  };
+  let params = {
+    method: `${method}`,
+  };
+  if (data) {
+    params = { ...params, ...data };
+  }
+  if (accept) {
+    params = { ...params, accept };
+  }
+  const finalJson = {
+    headers,
+    ...params,
+  };
+  console.log(finalJson);
+  return finalJson;
+};
+
 const clientLogin = async () => {
-  const data = await axios(tokenURI, {
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      // eslint-disable-next-line no-undef
-      Authorization: `Basic ${authString}`,
-    },
-    data: 'grant_type=client_credentials',
-    method: 'POST',
-  })
+  const data = await axios(
+    tokenURI,
+    apiReqJson({
+      method: 'POST',
+      data: {
+        data: 'grant_type=client_credentials',
+      },
+      accessToken: authString,
+      authType: 'Basic',
+      contentType: 'application/x-www-form-urlencoded',
+    }),
+  )
     .then((res) => res.data.access_token)
     .catch((err) => console.log(err));
+  return data;
+};
+
+const fetchPlaylists = async () => {
+  console.log('fetching playlists...');
+  console.log(process.env.TOKEN);
+  const data = await axios(
+    playlistsURI,
+    apiReqJson({
+      accessToken: process.env.TOKEN,
+      accept: 'application/json',
+    }),
+  )
+    .then((play) => {
+      console.log('processing data...');
+      const str = circularJSON.stringify(play);
+      const playlists = JSON.parse(str);
+      return playlists;
+    })
+    .catch((err) => err.response);
+
+  console.log(data);
   return data;
 };
 
@@ -39,4 +100,17 @@ const normalizePort = (val) => {
   return false;
 };
 
-export { clientLogin, normalizePort };
+const updateENV = (key, value) => {
+  console.log(`updating ${key}..\n`);
+  const sourcePath = path.resolve('./src', '../.env');
+  const source = fs.readFileSync(sourcePath, { encoding: 'utf8', flag: 'r' });
+  console.log('source', source);
+  const sourceObject = parse(source);
+  sourceObject[key] = value;
+  const str = stringify(sourceObject);
+  console.log(str);
+  fs.writeFileSync(sourcePath, str);
+  console.log(`${key} has been updated.`);
+};
+
+export { clientLogin, normalizePort, fetchPlaylists, updateENV };

@@ -3,6 +3,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 
 import { getToken } from './controllers/posts';
+import { getPlaylists } from './controllers/gets';
 
 const app = express();
 
@@ -13,5 +14,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => getToken(req, res));
+
+app.get('/playlists', (req, res) => getPlaylists(req, res));
 
 export default app;
