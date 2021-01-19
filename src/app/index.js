@@ -2,8 +2,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 
-import { getToken } from './controllers/posts';
-import { getPlaylists } from './controllers/gets';
+import { getPlaylists, getToken } from './controllers/gets';
 
 const app = express();
 
