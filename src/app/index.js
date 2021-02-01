@@ -2,7 +2,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 
-import { getPlaylists, getToken } from './controllers/gets';
+import { getPlaylists, getToken, getSongsList } from './controllers/gets';
 
 const app = express();
 
@@ -15,5 +15,7 @@ app.get('/', (req, res) => {
 app.get('/login', (req, res) => getToken(req, res));
 
 app.get('/playlists', (req, res) => getPlaylists(req, res));
+
+app.get('/songs/:playlist', (req, res) => getSongsList(req, res));
 
 export default app;

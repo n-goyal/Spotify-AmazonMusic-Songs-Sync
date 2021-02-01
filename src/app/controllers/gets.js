@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable import/prefer-default-export */
-import { fetchPlaylists, clientLogin, updateENV } from '../helpers';
+import { fetchPlaylists, clientLogin, updateENV, fetchSongs } from '../helpers';
 
 const getPlaylists = async (req, res) => {
   const playlists = await fetchPlaylists()
@@ -24,4 +24,19 @@ const getToken = async (req, res) => {
   res.send(token);
 };
 
-export { getPlaylists, getToken };
+const getSongsList = async (req, res) => {
+  console.log('fetching songs...');
+  const playlistId = req.params.playlist;
+  // api request for list of songs in the playlist
+  console.log(`playlist ${playlistId}`);
+  const songs = await fetchSongs(playlistId)
+    .then((data) => {
+      console.log('processing data...');
+      console.log(data);
+      return data;
+    })
+    .catch((err) => console.error(err));
+  res.send(songs);
+};
+
+export { getPlaylists, getToken, getSongsList };
