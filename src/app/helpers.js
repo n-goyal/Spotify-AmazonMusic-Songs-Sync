@@ -20,6 +20,7 @@ const authString = Buffer.from(
 
 console.log(authString);
 
+// generate axios json for POST, GET requests
 const apiReqJson = ({
   method = 'GET',
   data = {},
@@ -49,6 +50,7 @@ const apiReqJson = ({
   return finalJson;
 };
 
+// get login token
 const clientLogin = async () => {
   const data = await axios(
     tokenURI,
@@ -67,6 +69,7 @@ const clientLogin = async () => {
   return data;
 };
 
+// fetching user playlists
 const fetchPlaylists = async () => {
   console.log('fetching playlists...');
   console.log(process.env.TOKEN);
@@ -86,9 +89,43 @@ const fetchPlaylists = async () => {
     .catch((err) => err.response);
 
   console.log(data);
-  return data;
+  const lists = data.data.items.map((item) => item.tracks.href);
+  return lists;
 };
 
+const fetchSongs = async (Id) => {
+  console.log(`${playlistsURI}/${Id}/tracks`);
+  const data = await axios(
+    `${playlistsURI}/${Id}/tracks`,
+    apiReqJson({
+      accessToken: process.env.TOKEN,
+      accept: 'application/json',
+    }),
+  )
+    .then((songs) => {
+      console.log('processing data...');
+      const str = circularJSON.stringify(songs);
+      return JSON.parse(str);
+    })
+    .catch((err) => console.error(err.response));
+
+  console.log(data);
+  const tracks = data.data.items.map((item) => {
+    const temp = {};
+    temp.name = item.track.name;
+    temp.album = item.track.album.name;
+    temp.albumURL = item.track.album.href;
+    temp.url = item.track.href;
+    temp.artist = item.track.artists.map((artist) => artist.name);
+    return temp;
+  });
+  return tracks;
+};
+
+/*
+Normalizing port value coming from environment
+@param val: value of incoming port
+*/
 const normalizePort = (val) => {
   const port = parseInt(val, 10);
   if (Number.isNaN) {
@@ -100,8 +137,13 @@ const normalizePort = (val) => {
   return false;
 };
 
+/*
+update environment variable value
+@param key: environment variable name
+@param value: environment variable value
+*/
 const updateENV = (key, value) => {
-  console.log(`updating ${key}..\n`);
+  console.log(`\n updating ${key}..with value ${value}\n`);
   const sourcePath = path.resolve('./src', '../.env');
   const source = fs.readFileSync(sourcePath, { encoding: 'utf8', flag: 'r' });
   console.log('source', source);
@@ -113,4 +155,4 @@ const updateENV = (key, value) => {
   console.log(`${key} has been updated.`);
 };
 
-export { clientLogin, normalizePort, fetchPlaylists, updateENV };
+export { clientLogin, normalizePort, fetchPlaylists, updateENV, fetchSongs };
