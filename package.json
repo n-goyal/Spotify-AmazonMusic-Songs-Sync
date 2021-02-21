@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "babel-node ./src/bin/www.js",
-    "dev": "nodemon --exec ./src/bin/www.js --watch src",
+    "dev": "nodemon ./src/bin/www.js",
     "clean": "rm -rf dist",
     "build": "npm run clean && babel ./src --out-dir dist --copy-files",
     "restart": "npm clean && npm start",
@@ -26,6 +26,7 @@
     "express": "^4.17.1",
     "file-system": "^2.2.2",
     "nodemon": "^2.0.7",
+    "puppeteer": "^5.5.0",
     "regenerator-runtime": "^0.13.7",
     "spotify-web-api-node": "^5.0.0"
   },
