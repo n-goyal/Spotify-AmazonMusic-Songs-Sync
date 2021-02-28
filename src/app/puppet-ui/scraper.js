@@ -34,7 +34,14 @@ const scraper = async (browser, url) => {
       waitUntil: 'networkidle0',
     });
     console.log('Redirecting you to Amazon Prime Music');
+    // saving page cookies
+    const cookies = await page.cookies();
+    await fs.writeFile('../cookies.json', JSON.stringify(cookies, null, 2));
   } else {
+    // set cookies
+    const cookies = fs.readFileSync('cookies.json', 'utf8');
+    const deserializedCookies = JSON.parse(cookies);
+    await page.setCookie(...deserializedCookies);
     console.log('Looks like you are already logged in...');
   }
   // logged in
@@ -44,9 +51,61 @@ const scraper = async (browser, url) => {
     waitUntil: 'networkidle0',
     timeout: 0,
   });
-  // set page cookies
-  const cookies = await page.cookies();
-  await fs.writeFile('../cookies.json', JSON.stringify(cookies, null, 2));
+
+  // get list of songs in user's spotifiy database
 };
 
-export { scraper };
+const searchNAdd = async (page, track) => {
+  await page.waitForNavigation({
+    waitUntil: 'networkidle0',
+    timeout: 0,
+  });
+  await page.waitFor('#navbarSearchInput');
+  await page.type('#navbarSearchInput', track);
+  await page.click('#navbarSearchInputButton', {
+    waitUntil: 'networkidle0',
+  });
+  await page.click(
+    '.hydrated:nth-child(1) > div > .hydrated > .hydrated:nth-child(1) > .hydrated:nth-child(2)',
+    {
+      waitUntil: 'networkidle0',
+    },
+  );
+  await page.waitFor('#contextMenuOption1');
+  await page.click('#contextMenuOption1', {
+    waitUntil: 'networkidle0',
+  });
+  await page.click(
+    '._2bCICKG6mVSppz-HHoWSaY > .hydrated:nth-child(3) > .hydrated',
+    {
+      waitUntil: 'networkidle0',
+    },
+  );
+};
+
+async function getPlaylistNames(page) {
+  // const elements = document.querySelectorAll(
+  //   'music-shoveler[primary-text="My Playlists"] > music-vertical-item',
+  // );
+  const elements = await page.evaluate(
+    'music-shoveler[primary-text="My Playlists"] > music-vertical-item',
+  );
+  const playlistNames = [];
+  elements.forEach((element) => playlistNames.add(element.primaryText));
+  return playlistNames;
+}
+
+async function createPlaylist(page, playlist) {
+  await page.click('._2_399KOSMaMITdNQ_lXtMD > .hydrated', {
+    waitUntil: 'networkidle0',
+  });
+  await page.type('._3QpxCCZ2ZUyhnlmpwSU7as', playlist);
+  await page.click('#dialogButton1');
+  await page.waitForNavigation({
+    waitUntil: 'networkidle0',
+    timeout: 0,
+  });
+  return playlist;
+}
+
+export { scraper, searchNAdd, getPlaylistNames, createPlaylist };
